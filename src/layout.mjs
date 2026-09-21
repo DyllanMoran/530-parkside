@@ -1,13 +1,18 @@
 // The page shell and the small set of components every page is built from.
 
+// `file` is what lands in dist/. `href` is what pages link to: Cloudflare Pages
+// serves extensionless URLs and 308-redirects the .html form, so linking to the
+// bare name saves every internal navigation a redirect hop.
 export const PAGES = [
-  { file: 'index.html',      nav: 'The problem',  title: 'The public record of 530 Parkside Avenue' },
-  { file: 'violations.html', nav: 'Violations',   title: 'Every violation on record' },
-  { file: 'changes.html',    nav: 'What changed', title: 'What changed, and when' },
-  { file: 'building.html',   nav: 'Who owns it',  title: 'Who is responsible for this building' },
-  { file: 'tenants.html',    nav: 'If you live here', title: 'If you live at 530 Parkside' },
-  { file: 'data.html',       nav: 'Sources',      title: 'Where every number here comes from' }
+  { file: 'index.html',      href: '/',            nav: 'The problem',  title: 'The public record of 530 Parkside Avenue' },
+  { file: 'violations.html', href: '/violations',  nav: 'Violations',   title: 'Every violation on record' },
+  { file: 'changes.html',    href: '/changes',     nav: 'What changed', title: 'What changed, and when' },
+  { file: 'building.html',   href: '/building',    nav: 'Who owns it',  title: 'Who is responsible for this building' },
+  { file: 'tenants.html',    href: '/tenants',     nav: 'If you live here', title: 'If you live at 530 Parkside' },
+  { file: 'data.html',       href: '/data',        nav: 'Sources',      title: 'Where every number here comes from' }
 ];
+
+export const HREF = Object.fromEntries(PAGES.map((p) => [p.file, p.href]));
 
 export const esc = (s) =>
   String(s ?? '')
@@ -79,7 +84,7 @@ export function sourceNote(label, url) {
 function nav(current) {
   return PAGES.map(
     (p) =>
-      `<a href="${attr(p.file)}"${p.file === current ? ' aria-current="page"' : ''}>${esc(p.nav)}</a>`
+      `<a href="${attr(p.href)}"${p.file === current ? ' aria-current="page"' : ''}>${esc(p.nav)}</a>`
   ).join('');
 }
 
@@ -100,7 +105,7 @@ export function layout({ page, model, body, description }) {
 <meta property="og:description" content="${attr(description || site.description)}">
 <meta property="og:type" content="website">
 <meta name="color-scheme" content="light dark">
-<link rel="stylesheet" href="assets/styles.css">
+<link rel="stylesheet" href="/assets/styles.css">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>\u{1F3E2}</text></svg>">
 <script>
   // Set the theme before first paint so there is no flash.
@@ -114,7 +119,7 @@ export function layout({ page, model, body, description }) {
 <a class="skip" href="#main">Skip to content</a>
 <header class="site-header">
   <div class="wrap">
-    <a class="brand" href="index.html">${esc(site.name)} <span>· public record</span></a>
+    <a class="brand" href="/">${esc(site.name)} <span>· public record</span></a>
     <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch between light and dark">Theme</button>
     <nav class="main" aria-label="Main">${nav(page.file)}</nav>
   </div>
@@ -130,18 +135,18 @@ ${body}
       records.</p>
       <p><strong>Not legal advice.</strong> It is organized public information. If you need advice
       about your own apartment, the free sources on the
-      <a href="tenants.html">If you live here</a> page are the place to start.</p>
+      <a href="/tenants">If you live here</a> page are the place to start.</p>
     </div>
     <p><strong>Corrections.</strong> ${esc(cfg.corrections.promise)}</p>
     <p><strong>If you live here and want your apartment number off this page,</strong>
     ${esc(cfg.corrections.removalPromise.replace(/^If you live here and would rather your apartment number not appear, /, ''))}</p>
     <p>Every figure on this site is generated from the City of New York’s own open-data records and
     rebuilt automatically every day. Data as published by the City on <strong>${esc(asOf)}</strong>.
-    See <a href="data.html">Sources</a> for every dataset used and how the numbers are counted.</p>
+    See <a href="/data">Sources</a> for every dataset used and how the numbers are counted.</p>
     <p class="srcnote">Built ${esc(model.generatedAt)}</p>
   </div>
 </footer>
-<script src="assets/app.js" defer></script>
+<script src="/assets/app.js" defer></script>
 </body>
 </html>`;
 }

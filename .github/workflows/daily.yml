@@ -29,6 +29,11 @@ permissions:
 jobs:
   refresh:
     runs-on: ubuntu-latest
+    # The `secrets` context is not available in a step-level `if:`, so mirror the
+    # token into env at job level and test that instead. This is what lets the
+    # deploy step self-skip cleanly when deployment has not been wired up yet.
+    env:
+      CF_TOKEN_PRESENT: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -42,6 +47,11 @@ jobs:
       - name: Build the site
         run: npm run build
 
+      - name: Leak check
+        # This repository is public and sits inside a private one. Fail the run
+        # rather than publish private material.
+        run: npm run check
+
       - name: Commit today's snapshot
         run: |
           git config user.name  "github-actions[bot]"
@@ -54,14 +64,24 @@ jobs:
             git push
           fi
 
+      # --- Deployment -------------------------------------------------------
+      # Two ways to get the rebuilt site onto Cloudflare. Either is enough.
+      #
+      #  (a) Connect the Pages project to this GitHub repo in the Cloudflare
+      #      dashboard (Workers & Pages -> 530-parkside-nyc -> Settings -> Git).
+      #      Build command `npm run build`, output directory `dist`. Cloudflare
+      #      then redeploys on every push, including the data commit above, and
+      #      no secrets are needed here at all. This is the simpler path.
+      #
+      #  (b) Or set CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID as repository
+      #      secrets, and the step below takes over.
+      #
+      # The step self-skips when the token is absent, so the snapshot archive
+      # keeps accumulating either way.
       - name: Deploy to Cloudflare Pages
-        # Skipped automatically until the two secrets below are set, so the
-        # snapshot archive keeps building even before deployment is wired up.
-        if: ${{ env.CLOUDFLARE_API_TOKEN != '' }}
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        if: env.CF_TOKEN_PRESENT == 'true'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=530-parkside --branch=main
+          command: pages deploy dist --project-name=530-parkside-nyc --branch=main

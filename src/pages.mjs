@@ -132,7 +132,7 @@ ${stats([
       condition ever having been repaired — the record closes, the problem does not.</p>
       <p><strong>If you live in one of these apartments:</strong> watch your mail for an HPD
       inspection date and be home for it. If the date does not work, call and reschedule rather
-      than miss it. Details on the <a href="tenants.html">If you live here</a> page.</p>`, 'urgent')
+      than miss it. Details on the <a href="/tenants">If you live here</a> page.</p>`, 'urgent')
       : ''}
 
   ${notComplied
@@ -190,7 +190,7 @@ ${stats([
       on these, of which <strong>${money(m.otherAgencies.ecb.balanceDue)} is recorded as still
       outstanding</strong>.</p>
       <p>This is a six-storey building with ${num(m.config.units)} apartments. Full detail, with dates
-      and penalty amounts, is on the <a href="building.html">Who owns it</a> page.</p>`)
+      and penalty amounts, is on the <a href="/building">Who owns it</a> page.</p>`)
       : ''}
   ${sourceNote(ds('dobViolations').label, ds('dobViolations').url)}
   ${sourceNote(ds('ecbViolations').label, ds('ecbViolations').url)}
@@ -321,7 +321,7 @@ export function violationsPage(m) {
   with one exception: where the text describes the household rather than the building — the
   lead-paint formula naming a child under six — that clause is removed and the removal is
   marked. The violation itself, its apartment, class, date and ID are all still shown. See
-  <a href="data.html">Sources</a>.</p>
+  <a href="/data">Sources</a>.</p>
 </section>
 `
   };

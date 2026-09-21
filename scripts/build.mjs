@@ -82,7 +82,7 @@ async function main() {
   await writeFile(
     path.join(DIST, 'sitemap.xml'),
     `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
-      PAGES.map((p) => `  <url><loc>/${p.file}</loc><lastmod>${model.date}</lastmod></url>`).join('\n') +
+      PAGES.map((p) => `  <url><loc>${p.href}</loc><lastmod>${model.date}</lastmod></url>`).join('\n') +
       `\n</urlset>\n`,
     'utf8'
   );
