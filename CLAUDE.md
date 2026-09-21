@@ -131,9 +131,18 @@ more than any single row of data.
 
 ## Deployment
 
-The Cloudflare Pages project is **connected to this GitHub repository**, so
-Cloudflare rebuilds and redeploys on every push to `main`. Build command
-`npm run build`, output directory `dist`, Node from `.node-version`.
+Live at **https://530-parkside.pages.dev**.
+
+The Cloudflare Pages project `530-parkside` is **connected to this GitHub
+repository**, so Cloudflare rebuilds and redeploys on every push to `main`.
+Build command `npm run build`, output directory `dist`, Node from
+`.node-version`. Automatic deployments are on.
+
+Do not add a `wrangler.toml`/`wrangler.jsonc` here. `wrangler pages project
+create` generates one, Pages ignores it with a warning, and a stray
+`wrangler deploy` would then publish a *second* copy of this site as a Worker
+on a `workers.dev` hostname containing the account owner's name. One was
+created and deleted during setup; don't recreate it.
 
 **There is no Cloudflare credential in this repository, and there should not
 be.** That was a deliberate choice over the API-token approach: nothing to
