@@ -57,9 +57,14 @@ and overruled by the person whose site this is. It does not need making again.
 
 **Before any commit, run the leak check:** `npm run check`.
 
-The check allowlists email addresses that appear in `config/building.json`, so
-a bare `@gmail.com` still trips it unless it is one deliberately configured for
-publication. Verified both ways.
+The check allowlists email addresses that appear in `config/building.json`. A
+consumer webmail address still trips the net unless it is one deliberately
+configured for publication. Verified both ways.
+
+Do not write a literal example of a forbidden pattern into a tracked file: this
+paragraph originally spelled out the webmail domain and tripped its own check.
+`scripts/check.mjs` is exempt because its job is to hold those patterns; nothing
+else is.
 
 ## What this is
 
