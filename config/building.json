@@ -24,8 +24,9 @@
     "tagline": "The public record of 530 Parkside Avenue, Brooklyn",
     "description": "Every open housing violation, complaint and inspection the City of New York has on record for 530 Parkside Avenue — pulled fresh from NYC Open Data every day.",
     "contactEmail": "",
-    "repoUrl": "https://github.com/DyllanMoran/530-parkside",
-    "url": "https://530-parkside.pages.dev"
+    "repoUrl": "",
+    "url": "https://530-parkside.pages.dev",
+    "sourceNote": "pending"
   },
   "responsibleParties": {
     "note": "Entries under 'fromHpdRegistration' are generated automatically from HPD's registration record and must not be edited by hand. 'providedToTenants' is transcribed from a contact sheet the building gave to tenants; every entry published from it carries that provenance on the page. Do not add a party here from any other source.",

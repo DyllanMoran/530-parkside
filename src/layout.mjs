@@ -143,12 +143,13 @@ ${body}
     <p>Every figure on this site is generated from the City of New York’s own open-data records and
     rebuilt automatically every day. Data as published by the City on <strong>${esc(asOf)}</strong>.
     See <a href="/data">Sources</a> for every dataset used and how the numbers are counted.</p>
-    ${site.repoUrl
-      ? `<p><strong>Check our arithmetic.</strong> The code that builds this page, and a dated
-      archive of the City’s raw data for every day this site has run, are public at
-      <a href="${attr(site.repoUrl)}" rel="noopener">${esc(site.repoUrl.replace(/^https:\/\//, ''))}</a>.
-      The current figures are also available as <a href="/summary.json">summary.json</a>.</p>`
-      : ''}
+    <p><strong>Check our arithmetic.</strong> The complete, unedited response from the City’s
+    own servers that this page was built from is published alongside it, at
+    <a href="/data/latest.json">/data/latest.json</a> — not a summary, not our reading of it.
+    The figures shown on these pages are also available as
+    <a href="/summary.json">summary.json</a>. A dated copy is kept for every day this site has
+    run, so any figure here can be checked against what the City published on the day it was
+    taken.</p>
     <p class="srcnote">Built ${esc(model.generatedAt)}</p>
   </div>
 </footer>

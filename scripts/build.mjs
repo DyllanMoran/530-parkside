@@ -50,6 +50,12 @@ async function main() {
 
   await cp(path.join(ROOT, 'src', 'assets'), path.join(DIST, 'assets'), { recursive: true });
 
+  // Publish the raw City response next to the pages it was built from, so the
+  // "check our arithmetic" claim in the footer is actually actionable without
+  // anyone needing a GitHub account. ~2.4MB raw, ~100KB over the wire gzipped.
+  await mkdir(path.join(DIST, 'data'), { recursive: true });
+  await cp(path.join(ROOT, 'data', 'latest.json'), path.join(DIST, 'data', 'latest.json'));
+
   // Machine-readable summary, so the data is reusable without scraping the HTML.
   await writeFile(
     path.join(DIST, 'summary.json'),

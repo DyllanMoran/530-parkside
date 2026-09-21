@@ -67,6 +67,32 @@ async function withRetry(fn, label, attempts = 4) {
 }
 
 // ---------------------------------------------------------------------------
+// Redaction at the source
+// ---------------------------------------------------------------------------
+// Some datasets carry fields that identify a household rather than a building,
+// and the snapshot archive is PUBLIC and permanent -- committed to a public
+// repository and published at /data/latest.json. Redacting at render time is
+// not enough, and redacting in analyze.mjs is not enough either: the raw rows
+// are what get archived.
+//
+// Evictions are the case in point. NYC publishes, for every eviction a Marshal
+// carries out, the apartment number AND the court index number -- and a court
+// index number leads directly to a named person in court records. A violation
+// records an owner failing an obligation; an eviction records the worst thing
+// that happened to a neighbour. Only the fields the site actually uses survive
+// this function.
+const REDACT = {
+  evictions: (row) => ({
+    executed_date: row.executed_date,
+    residential_commercial_ind: row.residential_commercial_ind,
+    borough: row.borough
+    // DELIBERATELY DROPPED: eviction_apt_num, court_index_number, docket_number,
+    // eviction_address, marshal_first_name, marshal_last_name, latitude,
+    // longitude. Do not add them back.
+  })
+};
+
+// ---------------------------------------------------------------------------
 // Canonical ordering
 // ---------------------------------------------------------------------------
 // Socrata does not guarantee row order. The 311 dataset (erm2-nwe9) in
@@ -142,7 +168,9 @@ async function main() {
 
   for (const [key, src] of Object.entries(SOURCES)) {
     try {
-      const rows = stableRows(await socrata(src.id, src.query(b)));
+      let rows = await socrata(src.id, src.query(b));
+      if (REDACT[key]) rows = rows.map(REDACT[key]);
+      rows = stableRows(rows);
       datasets[key] = rows;
       log(`${key} (${src.id}): ${rows.length} rows`);
     } catch (err) {

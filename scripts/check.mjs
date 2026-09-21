@@ -43,6 +43,11 @@ const allowedByConfig = new Set(
   [...configText.matchAll(/[\w.+-]+@[\w.-]+\.\w+/g)].map((m) => m[0].toLowerCase())
 );
 
+// Any committed snapshot must not carry household-identifying eviction fields.
+// This is checked separately from the text patterns because it is structural:
+// the fields either survived redaction or they did not.
+const EVICTION_FORBIDDEN = ['eviction_apt_num', 'court_index_number', 'docket_number', 'marshal_first_name', 'marshal_last_name'];
+
 const files = execFileSync('git', ['ls-files'], { encoding: 'utf8' })
   .split('\n')
   .filter(Boolean)
@@ -66,6 +71,27 @@ for (const file of files) {
       }
       findings.push({ file, line: i + 1, why, text: line.trim().slice(0, 110) });
     });
+  }
+}
+
+for (const file of files.filter((f) => /^data\/.*\.json$/.test(f))) {
+  let snap;
+  try {
+    snap = JSON.parse(readFileSync(file, 'utf8'));
+  } catch {
+    continue;
+  }
+  const evictions = snap?.datasets?.evictions;
+  if (!Array.isArray(evictions)) continue;
+  for (const field of EVICTION_FORBIDDEN) {
+    if (evictions.some((r) => r && Object.hasOwn(r, field))) {
+      findings.push({
+        file,
+        line: 1,
+        why: `eviction field "${field}" identifies a household and must be redacted at fetch time`,
+        text: `${evictions.length} eviction row(s) carry ${field}`
+      });
+    }
   }
 }
 
