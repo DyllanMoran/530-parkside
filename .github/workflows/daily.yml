@@ -65,24 +65,26 @@ jobs:
           fi
 
       # --- Deployment -------------------------------------------------------
-      # The Pages project `530-parkside-nyc` is a DIRECT UPLOAD project, created
-      # with `wrangler pages project create`. A direct-upload project cannot be
-      # connected to a Git repository after the fact -- that choice is fixed at
-      # creation -- so the only way to keep the live site current is for this
-      # workflow to push the build to Cloudflare itself.
+      # Primary path: the Cloudflare Pages project is connected to this GitHub
+      # repository, so Cloudflare rebuilds and redeploys on every push to main
+      # -- including the data commit above. Nothing here needs to deploy, and
+      # no Cloudflare credential exists anywhere in this repo. That is the point.
       #
-      # To turn that on, once:
+      #   Cloudflare build settings:
+      #     Build command      npm run build
+      #     Output directory   dist
+      #     Node version       from .node-version (22)
       #
-      #   1. Cloudflare dashboard -> My Profile -> API Tokens -> Create Token
-      #      -> use the "Edit Cloudflare Workers" template, or a custom token
-      #      with Account / Cloudflare Pages / Edit.
-      #   2. Add it to this repo:
-      #        gh secret set CLOUDFLARE_API_TOKEN        # paste when prompted
-      #        gh secret set CLOUDFLARE_ACCOUNT_ID       # paste when prompted
+      # Worth verifying once after setup: GitHub deliberately does not let a
+      # push made with GITHUB_TOKEN trigger further GitHub Actions *workflows*.
+      # That restriction does not extend to third-party GitHub App webhooks, so
+      # Cloudflare should still rebuild on the bot's daily data commit. If a
+      # daily snapshot ever lands without the live site changing, that
+      # assumption was wrong -- fall back to the step below.
       #
-      # Until then this step skips itself and the job still commits the daily
-      # snapshot, so the archive keeps accumulating and nothing is lost -- the
-      # published page just stops changing.
+      # Fallback path: set CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID as
+      # repository secrets and this step takes over. It skips itself silently
+      # while they are unset, which is the normal state.
       - name: Deploy to Cloudflare Pages
         if: env.CF_TOKEN_PRESENT == 'true'
         uses: cloudflare/wrangler-action@v3

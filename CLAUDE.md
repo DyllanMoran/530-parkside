@@ -131,14 +131,26 @@ more than any single row of data.
 
 ## Deployment
 
-GitHub Actions (`.github/workflows/daily.yml`) runs daily: fetch → build →
-commit the snapshot → deploy to Cloudflare Pages. The deploy step self-skips
-until `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` are set as repository
-secrets, so the archive keeps accumulating regardless.
+The Cloudflare Pages project is **connected to this GitHub repository**, so
+Cloudflare rebuilds and redeploys on every push to `main`. Build command
+`npm run build`, output directory `dist`, Node from `.node-version`.
+
+**There is no Cloudflare credential in this repository, and there should not
+be.** That was a deliberate choice over the API-token approach: nothing to
+rotate, nothing to leak, nothing to expire. `.github/workflows/daily.yml` has a
+self-skipping fallback deploy step if that ever has to change.
+
+The daily workflow fetches, builds, runs the leak check, and commits a dated
+snapshot. It does not deploy — Cloudflare reacts to the commit.
 
 `fetch.mjs` refuses to write a snapshot if a **critical** dataset fails, or if
 the violations query returns implausibly few rows. A stale site is recoverable;
 a site showing wrong numbers is not.
+
+Snapshots are stored in canonical order (rows sorted, keys sorted) because
+Socrata does not guarantee row order — the 311 dataset reshuffles on every
+call. Without that, every run produces a meaningless diff and the archive stops
+being evidence of anything.
 
 ## Making this work for another building
 
