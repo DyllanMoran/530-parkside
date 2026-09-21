@@ -65,19 +65,24 @@ jobs:
           fi
 
       # --- Deployment -------------------------------------------------------
-      # Two ways to get the rebuilt site onto Cloudflare. Either is enough.
+      # The Pages project `530-parkside-nyc` is a DIRECT UPLOAD project, created
+      # with `wrangler pages project create`. A direct-upload project cannot be
+      # connected to a Git repository after the fact -- that choice is fixed at
+      # creation -- so the only way to keep the live site current is for this
+      # workflow to push the build to Cloudflare itself.
       #
-      #  (a) Connect the Pages project to this GitHub repo in the Cloudflare
-      #      dashboard (Workers & Pages -> 530-parkside-nyc -> Settings -> Git).
-      #      Build command `npm run build`, output directory `dist`. Cloudflare
-      #      then redeploys on every push, including the data commit above, and
-      #      no secrets are needed here at all. This is the simpler path.
+      # To turn that on, once:
       #
-      #  (b) Or set CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID as repository
-      #      secrets, and the step below takes over.
+      #   1. Cloudflare dashboard -> My Profile -> API Tokens -> Create Token
+      #      -> use the "Edit Cloudflare Workers" template, or a custom token
+      #      with Account / Cloudflare Pages / Edit.
+      #   2. Add it to this repo:
+      #        gh secret set CLOUDFLARE_API_TOKEN        # paste when prompted
+      #        gh secret set CLOUDFLARE_ACCOUNT_ID       # paste when prompted
       #
-      # The step self-skips when the token is absent, so the snapshot archive
-      # keeps accumulating either way.
+      # Until then this step skips itself and the job still commits the daily
+      # snapshot, so the archive keeps accumulating and nothing is lost -- the
+      # published page just stops changing.
       - name: Deploy to Cloudflare Pages
         if: env.CF_TOKEN_PRESENT == 'true'
         uses: cloudflare/wrangler-action@v3
