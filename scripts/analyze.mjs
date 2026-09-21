@@ -241,6 +241,7 @@ export function analyze(snapshot, config) {
     rodent: buildRodent(ds.rodent || []),
     complaints: buildComplaints(ds.complaints || [], today),
     serviceRequests: buildServiceRequests(ds.serviceRequests || [], today),
+    portfolio: snapshot.portfolio || null,
     otherAgencies: buildOtherAgencies(ds.dobViolations, ds.ecbViolations),
     evictions: buildEvictions(ds.evictions),
     enforcement: {

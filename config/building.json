@@ -28,17 +28,41 @@
     "url": "https://530-parkside.pages.dev"
   },
   "responsibleParties": {
-    "note": "Entries under 'fromHpdRegistration' are generated automatically from HPD's registration record and must not be edited by hand. Entries under 'postedInBuilding' are transcribed from the sign the owner is required by law to post in the lobby. Every entry on the published page carries its source. Do not add a party here from any other source — not a text message, not a flyer, not a neighbour.",
-    "postedInBuilding": {
-      "enabled": false,
-      "sourceCitation": "Transcribed from the identification sign posted in the building lobby, as required of the owner by NYC Admin. Code § 27-2104 and 28 RCNY § 25-81.",
-      "transcribedOn": "",
+    "note": "Entries under 'fromHpdRegistration' are generated automatically from HPD's registration record and must not be edited by hand. 'providedToTenants' is transcribed from a contact sheet the building gave to tenants; every entry published from it carries that provenance on the page. Do not add a party here from any other source.",
+    "providedToTenants": {
+      "enabled": true,
+      "sourceCitation": "Transcribed from the contact sheet the building provides to tenants. Not a government record — see the sourcing note on this page.",
+      "transcribedOn": "2026-09-21",
       "entries": [
         {
+          "role": "Landlord",
+          "name": "Jon Weinberger",
+          "phone": "(718) 644-4371",
+          "email": "landlord425@gmail.com",
+          "notes": "HPD's registration record for this building names the head officer as Yechiel Weinberger, at the same company and the same office address."
+        },
+        {
+          "role": "Property Manager",
+          "name": "Simon",
+          "company": "ESQ Property NY",
+          "phone": "(347) 546-5963",
+          "email": "simon@esqpropertyny.com",
+          "notes": "Does not appear in HPD's registration record for this building, which names the site manager as Yechiel Weinberger."
+        },
+        {
           "role": "Superintendent",
-          "name": "",
-          "phone": "",
-          "notes": ""
+          "name": "Pablo",
+          "phone": "(929) 365-9854",
+          "email": "",
+          "notes": "HPD's registration record for this building names no superintendent."
+        },
+        {
+          "role": "Office",
+          "name": "Parkside 530, LLC",
+          "phone": "(718) 851-4773",
+          "email": "",
+          "address": "4711 12th Avenue #A8, Brooklyn, NY 11219",
+          "notes": "Matches the business address on HPD's registration record."
         }
       ]
     }
@@ -46,5 +70,15 @@
   "corrections": {
     "promise": "If you are named on this page and believe something here is wrong, write to us. We check every claim against the city's record and correct anything that is actually wrong, in public, with the date of the correction shown.",
     "removalPromise": "If you live here and would rather your apartment number not appear, say so and we will remove it. No reason needed."
+  },
+  "portfolio": {
+    "enabled": true,
+    "matchName": {
+      "firstname": "YECHIEL",
+      "lastname": "WEINBERGER"
+    },
+    "matchBusinessHouseNumber": "4711",
+    "matchBusinessStreetContains": "12",
+    "note": "Counts HPD registrations naming this person at this exact business address. This is NOT a claim of ownership — see the caveats rendered on the page."
   }
 }

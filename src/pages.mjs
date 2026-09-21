@@ -405,7 +405,7 @@ export function buildingPage(m) {
   const o = m.owner;
   const reg = m.registration;
   const cfg = m.config;
-  const posted = cfg.responsibleParties.postedInBuilding;
+  const posted = cfg.responsibleParties.providedToTenants;
 
   const card = (role, name, meta, src) => `<div class="contact-card">
     <div class="role">${esc(role)}</div>
@@ -429,37 +429,6 @@ export function buildingPage(m) {
       )
     )
     .join('');
-
-  const postedCards =
-    posted.enabled && posted.entries.some((e) => e.name || e.phone)
-      ? posted.entries
-          .filter((e) => e.name || e.phone)
-          .map((e) =>
-            card(
-              e.role,
-              e.name || 'Name not posted',
-              [
-                e.phone ? `<a href="tel:${attr(e.phone.replace(/[^0-9+]/g, ''))}">${esc(e.phone)}</a>` : null,
-                e.notes ? esc(e.notes) : null
-              ]
-                .filter(Boolean)
-                .join('<br>'),
-              `${esc(posted.sourceCitation)}${posted.transcribedOn ? ` Transcribed ${esc(longDate(posted.transcribedOn))}.` : ''}`
-            )
-          )
-          .join('')
-      : `<div class="callout calm">
-          <h3>No superintendent is named in the City’s record</h3>
-          <p>The owner of a multiple dwelling is required by
-          <a href="https://www.nyc.gov/site/hpd/services-and-information/required-signage.page" rel="noopener">NYC
-          Admin. Code § 27-2104 and 28 RCNY § 25-81</a> to post a sign in the entrance hall
-          giving the name, address and telephone number of the superintendent, janitor or
-          housekeeper, alongside the building’s HPD serial number.</p>
-          <p>HPD’s registration record for this building names no separate superintendent — it
-          lists the same individual as owner, agent and site manager. If a sign is posted in the
-          lobby, its details are public by law and can be added here; if no sign is posted, that
-          absence is itself a violation of § 27-2104.</p>
-        </div>`;
 
   const litRows = m.litigation.cases
     .map(
@@ -510,8 +479,39 @@ export function buildingPage(m) {
 </section>
 
 <section>
-  <h2>Building staff</h2>
-  ${postedCards}
+  <h2>Who the building tells tenants to contact</h2>
+  ${posted.enabled && posted.entries.some((e) => e.name || e.phone)
+      ? `<p class="sub">These are the people the building itself directs tenants to. Where a name
+        here differs from HPD's registration record above, that difference is noted — it is not an
+        accusation, but it is the kind of thing a tenant trying to get a repair needs to know.</p>
+        ${posted.entries
+          .filter((e) => e.name || e.phone)
+          .map((e) => `<div class="contact-card">
+            <div class="role">${esc(e.role)}${e.company ? ` · ${esc(e.company)}` : ''}</div>
+            <div class="name">${esc(e.name || 'Name not given')}</div>
+            <div class="meta">
+              ${e.phone ? `<a href="tel:${attr(e.phone.replace(/[^0-9+]/g, ''))}">${esc(e.phone)}</a>` : ''}
+              ${e.email ? `${e.phone ? ' · ' : ''}<a href="mailto:${attr(e.email)}">${esc(e.email)}</a>` : ''}
+              ${e.address ? `<br>${esc(e.address)}` : ''}
+            </div>
+            ${e.notes ? `<div class="meta" style="margin-top:6px;color:var(--ink-3);font-size:0.85rem">${esc(e.notes)}</div>` : ''}
+            <div class="src">${esc(posted.sourceCitation)}${posted.transcribedOn ? ` Transcribed ${esc(longDate(posted.transcribedOn))}.` : ''}</div>
+          </div>`)
+          .join('')}
+        ${callout(`<h3>Where this came from, and why that matters</h3>
+        <p>Everything else on this site comes from a government dataset. This section does not. It
+        is transcribed from a contact sheet the building gives to its own tenants, and it is
+        published here because the City's registration record does not name the people who
+        actually manage this building — it names one individual as owner, agent and site manager,
+        and names no superintendent at all.</p>
+        <p>New York requires an owner to post the superintendent's name, address and telephone
+        number in the entrance hall, under
+        <a href="https://www.nyc.gov/site/hpd/services-and-information/required-signage.page" rel="noopener">Admin.
+        Code § 27-2104 and 28 RCNY § 25-81</a>. This information is meant to be available to
+        every tenant.</p>
+        <p>If you are named here and something is wrong — or you are no longer in this role —
+        write to us and it will be corrected or removed, with the date of the change shown.</p>`, 'calm')}`
+      : ''}
 </section>
 
 <section>
@@ -658,6 +658,47 @@ export function buildingPage(m) {
         nobody living here. The building-level count carries the context without that cost.</p>`, 'calm')}
         ${sourceNote(ds('evictions').label, ds('evictions').url)}`
       : '<p class="srcnote">The evictions dataset was unavailable when this page was last built.</p>'}
+</section>
+
+<section>
+  <h2>This building is one of ${m.portfolio ? num(m.portfolio.registrationCount) : 'several'}</h2>
+  ${m.portfolio
+      ? `<p class="sub">HPD publishes, for every registered building in the city, the people named
+        on that registration and the business address they gave. Searching that record for
+        <strong>${esc(m.portfolio.person)}</strong> at
+        <strong>${esc(m.portfolio.businessAddress)}</strong> — the same name and office address
+        recorded for this building — returns ${num(m.portfolio.registrationCount)} separate
+        building registrations.</p>
+
+        ${stats([
+          { n: num(m.portfolio.registrationCount), label: 'Building registrations naming this person at this address' },
+          { n: num(m.portfolio.headOfficerCount), label: 'On which he is named head officer' },
+          { n: num(m.portfolio.openViolations), label: 'Open violations across those buildings', tone: 'alarm' },
+          { n: num(m.portfolio.everViolations), label: 'Violations ever recorded across them' }
+        ])}
+
+        ${callout(`<h3>What this does and does not say</h3>
+        <p><strong>It does not say anyone owns ${num(m.portfolio.registrationCount)} buildings.</strong>
+        It says one person is <em>named in the City's registration record</em> for that many, as
+        head officer on ${num(m.portfolio.headOfficerCount)} of them. Ownership sits with separate
+        companies, which this page does not enumerate.</p>
+        <p>The match is on full name <em>and</em> exact business address, which is a strong match.
+        It is not a legal identification, and this page does not present it as one.</p>
+        <p>It also says nothing whatever about <em>why</em> any of these violations are open.</p>`, 'calm')}
+
+        <h3>The ${num(Math.min(15, m.portfolio.buildings.length))} with the most open violations</h3>
+        ${table({
+          head: ['Building', 'Borough', { label: 'Open', num: true }, { label: 'Ever recorded', num: true }],
+          rows: [m.portfolio.buildings.slice(0, 15).map((b) => `<tr${b.isThisBuilding ? ' style="background:var(--accent-soft)"' : ''}>
+              <td><strong>${esc(b.address)}</strong>${b.isThisBuilding ? ' ← this building' : ''}</td>
+              <td class="nowrap">${esc(b.boro || '')}</td>
+              <td class="num">${b.open ? `<span class="overdue">${num(b.open)}</span>` : '0'}</td>
+              <td class="num">${num(b.ever)}</td>
+            </tr>`).join('')]
+        })}
+        <p class="srcnote">Derived from ${dsLink('contacts')} and ${dsLink('violations')}, recomputed daily.
+        Figures taken ${esc(longDate(m.portfolio.asOf.slice(0, 10)))}.${m.portfolio.queryFailures ? ` ${num(m.portfolio.queryFailures)} building(s) could not be queried on this run and are not counted.` : ''}</p>`
+      : '<p class="srcnote">Portfolio figures were unavailable when this page was last built.</p>'}
 </section>
 
 <section>

@@ -13,6 +13,7 @@ import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { SOURCES, SOCRATA_HOST } from './sources.mjs';
+import { fetchPortfolio } from './portfolio.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DATA = path.join(ROOT, 'data');
@@ -156,6 +157,21 @@ async function main() {
     }
   }
 
+  // The portfolio is expensive and strictly optional. If it fails we keep the
+  // previous result rather than dropping the section, and the page shows the
+  // date the figures were taken.
+  let portfolio = null;
+  try {
+    portfolio = await fetchPortfolio(config, (m) => log(m));
+  } catch (err) {
+    log(`portfolio unavailable this run (${err.message}) — keeping the previous figures`);
+    errors.push({ key: 'portfolio', datasetId: 'feu5-w2e2+wvxf-dwi5', critical: false, message: err.message });
+    try {
+      const prevSnap = JSON.parse(await readFile(path.join(DATA, 'latest.json'), 'utf8'));
+      portfolio = prevSnap.portfolio || null;
+    } catch { /* first run, nothing to keep */ }
+  }
+
   const criticalFailures = errors.filter((e) => e.critical);
   if (criticalFailures.length) {
     console.error(
@@ -178,7 +194,7 @@ async function main() {
     process.exit(1);
   }
 
-  const snapshot = { date, fetchedAt, identifiers: b, datasets, softErrors: errors };
+  const snapshot = { date, fetchedAt, identifiers: b, datasets, portfolio, softErrors: errors };
 
   await mkdir(SNAPSHOTS, { recursive: true });
   const todayFile = `${date}.json`;
@@ -190,7 +206,11 @@ async function main() {
   // every code push even when the City's data had not moved an inch. Compare
   // the datasets alone; the timestamp on a snapshot should be when that data
   // was FIRST seen that day, not when we last happened to look.
-  const sameData = (a, c) => a && c && JSON.stringify(a.datasets) === JSON.stringify(c.datasets);
+  const stripAsOf = (p) => (p ? { ...p, asOf: undefined } : null);
+  const sameData = (a, c) =>
+    a && c &&
+    JSON.stringify(a.datasets) === JSON.stringify(c.datasets) &&
+    JSON.stringify(stripAsOf(a.portfolio)) === JSON.stringify(stripAsOf(c.portfolio));
   const existingToday = await readJson(todayPath);
 
   if (sameData(existingToday, snapshot)) {

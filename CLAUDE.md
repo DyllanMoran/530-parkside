@@ -33,7 +33,33 @@ built for.
 Every apartment on this site appears the same way: as a row in HPD's public
 violation record. The site does not say who lives in any of them.
 
+### The one deliberate exception to the sourcing rule
+
+`config/building.json` → `responsibleParties.providedToTenants` is **not**
+government data. It is transcribed from a contact sheet the building gives its
+own tenants, and it names a landlord, a property manager and a superintendent
+with their phone numbers and emails.
+
+**This was a deliberate, informed decision by the site's owner, made twice.**
+Do not remove it as a sourcing violation. It is published because HPD's
+registration record does not name the people who actually manage this
+building — it names one individual as owner, agent and site manager, and no
+superintendent at all. Every entry carries its provenance on the page, and the
+page states plainly that this section is not a government record.
+
+The rule still holds for everything else: no other non-government source gets
+added without the owner deciding so explicitly.
+
+Note for whoever maintains this: publishing a superintendent's personal mobile
+was argued against here on the grounds that it routes tenant anger at a wage
+employee who does not control the repair budget. That argument was made, heard,
+and overruled by the person whose site this is. It does not need making again.
+
 **Before any commit, run the leak check:** `npm run check`.
+
+The check allowlists email addresses that appear in `config/building.json`, so
+a bare `@gmail.com` still trips it unless it is one deliberately configured for
+publication. Verified both ways.
 
 ## What this is
 
@@ -112,6 +138,12 @@ warns at build time if one ever reaches the open set, where it would inflate the
 Two are structural — they live in code, not in an editing pass, because HPD's
 text varies between inspectors and a future pull can reintroduce a phrasing we
 haven't seen.
+
+0. **The portfolio section is a count of registrations, never a claim of
+   ownership.** `scripts/portfolio.mjs` matches on full name AND exact business
+   address. The page must say "named in the registration record for N
+   buildings", never "owns N buildings" — ownership sits with separate LLCs
+   this site does not enumerate. The caveat block on the page is not optional.
 
 1. **Household detail is stripped from violation text.** `redact()` in
    `analyze.mjs` removes the lead-paint clause naming a child under six. The
