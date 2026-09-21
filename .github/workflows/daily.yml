@@ -1,0 +1,67 @@
+name: Daily data refresh
+
+# The point of this job is not just to keep the page current. Each run commits a
+# dated snapshot of what the City's record said that day, building a public
+# archive of how this building's record changed over time. HPD's database only
+# ever stores the current status; this is the only record of the previous one.
+
+on:
+  schedule:
+    # 11:10 UTC = 6:10am America/New_York in winter, 7:10am in summer.
+    # Cron here is always UTC; the snapshot itself is dated in New York time.
+    - cron: '10 11 * * *'
+  workflow_dispatch: {}
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'scripts/**'
+      - 'config/**'
+      - '.github/workflows/daily.yml'
+
+concurrency:
+  group: daily-refresh
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Fetch today's data from NYC Open Data
+        run: npm run fetch
+
+      - name: Build the site
+        run: npm run build
+
+      - name: Commit today's snapshot
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/
+          if git diff --staged --quiet; then
+            echo "No change in the City's record today."
+          else
+            git commit -m "Data snapshot $(TZ=America/New_York date +%Y-%m-%d)"
+            git push
+          fi
+
+      - name: Deploy to Cloudflare Pages
+        # Skipped automatically until the two secrets below are set, so the
+        # snapshot archive keeps building even before deployment is wired up.
+        if: ${{ env.CLOUDFLARE_API_TOKEN != '' }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=530-parkside --branch=main

@@ -1,0 +1,49 @@
+{
+  "address": "530 Parkside Avenue",
+  "addressRange": "522–536 Parkside Avenue",
+  "city": "Brooklyn",
+  "state": "NY",
+  "zip": "11226",
+  "units": 83,
+  "stories": 6,
+  "yearBuilt": 1931,
+  "identifiers": {
+    "bbl": "3050560014",
+    "boroId": "3",
+    "boro": "BROOKLYN",
+    "block": "5056",
+    "lot": "14",
+    "bin": "3115999",
+    "hpdBuildingId": "352258",
+    "hpdRegistrationId": "324817",
+    "communityBoard": "9",
+    "councilDistrict": "40"
+  },
+  "site": {
+    "name": "530 Parkside",
+    "tagline": "The public record of 530 Parkside Avenue, Brooklyn",
+    "description": "Every open housing violation, complaint and inspection the City of New York has on record for 530 Parkside Avenue — pulled fresh from NYC Open Data every day.",
+    "contactEmail": "",
+    "repoUrl": ""
+  },
+  "responsibleParties": {
+    "note": "Entries under 'fromHpdRegistration' are generated automatically from HPD's registration record and must not be edited by hand. Entries under 'postedInBuilding' are transcribed from the sign the owner is required by law to post in the lobby. Every entry on the published page carries its source. Do not add a party here from any other source — not a text message, not a flyer, not a neighbour.",
+    "postedInBuilding": {
+      "enabled": false,
+      "sourceCitation": "Transcribed from the identification sign posted in the building lobby, as required of the owner by NYC Admin. Code § 27-2104 and 28 RCNY § 25-81.",
+      "transcribedOn": "",
+      "entries": [
+        {
+          "role": "Superintendent",
+          "name": "",
+          "phone": "",
+          "notes": ""
+        }
+      ]
+    }
+  },
+  "corrections": {
+    "promise": "If you are named on this page and believe something here is wrong, write to us. We check every claim against the city's record and correct anything that is actually wrong, in public, with the date of the correction shown.",
+    "removalPromise": "If you live here and would rather your apartment number not appear, say so and we will remove it. No reason needed."
+  }
+}
