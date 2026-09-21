@@ -65,6 +65,38 @@ async function withRetry(fn, label, attempts = 4) {
   throw new Error(`${label} failed after ${attempts} attempts: ${lastErr.message}`);
 }
 
+// ---------------------------------------------------------------------------
+// Canonical ordering
+// ---------------------------------------------------------------------------
+// Socrata does not guarantee row order. The 311 dataset (erm2-nwe9) in
+// particular returns the same 426 rows in a different order on every call, and
+// rows are sparse, so two rows can carry different key sets.
+//
+// Without this, every run rewrites the snapshot and the git history fills with
+// diffs that mean nothing. The archive's entire value is that a diff means the
+// CITY's record changed -- so rows are sorted into a canonical order, and each
+// row's keys are sorted too, before anything is written.
+function canonical(value) {
+  if (Array.isArray(value)) return value.map(canonical);
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.keys(value)
+        .sort()
+        .map((k) => [k, canonical(value[k])])
+    );
+  }
+  return value;
+}
+
+function stableRows(rows) {
+  if (!Array.isArray(rows)) return rows;
+  return rows
+    .map(canonical)
+    .map((row) => [JSON.stringify(row), row])
+    .sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0))
+    .map(([, row]) => row);
+}
+
 async function readJson(file) {
   try {
     return JSON.parse(await readFile(file, 'utf8'));
@@ -109,7 +141,7 @@ async function main() {
 
   for (const [key, src] of Object.entries(SOURCES)) {
     try {
-      const rows = await socrata(src.id, src.query(b));
+      const rows = stableRows(await socrata(src.id, src.query(b)));
       datasets[key] = rows;
       log(`${key} (${src.id}): ${rows.length} rows`);
     } catch (err) {
