@@ -65,6 +65,14 @@ async function withRetry(fn, label, attempts = 4) {
   throw new Error(`${label} failed after ${attempts} attempts: ${lastErr.message}`);
 }
 
+async function readJson(file) {
+  try {
+    return JSON.parse(await readFile(file, 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
 function todayISO() {
   // America/New_York -- this is a New York building and the dates on the page
   // are New York dates. Running the job at 11:00 UTC would otherwise label a
@@ -142,12 +150,33 @@ async function main() {
 
   await mkdir(SNAPSHOTS, { recursive: true });
   const todayFile = `${date}.json`;
+  const todayPath = path.join(SNAPSHOTS, todayFile);
+  const latestPath = path.join(DATA, 'latest.json');
+
+  // Re-running on the same day must not churn the archive. Every run carries a
+  // fresh `fetchedAt`, so writing unconditionally would produce a commit on
+  // every code push even when the City's data had not moved an inch. Compare
+  // the datasets alone; the timestamp on a snapshot should be when that data
+  // was FIRST seen that day, not when we last happened to look.
+  const sameData = (a, c) => a && c && JSON.stringify(a.datasets) === JSON.stringify(c.datasets);
+  const existingToday = await readJson(todayPath);
+
+  if (sameData(existingToday, snapshot)) {
+    log(`snapshots/${todayFile} already holds today's data unchanged — leaving it alone`);
+  } else {
+    await writeFile(todayPath, JSON.stringify(snapshot), 'utf8');
+    log(existingToday ? `snapshots/${todayFile} updated — the City's data changed today` : `wrote snapshots/${todayFile}`);
+  }
+
+  const existingLatest = await readJson(latestPath);
+  if (sameData(existingLatest, snapshot) && existingLatest.date === snapshot.date) {
+    log('latest.json unchanged');
+  } else {
+    await writeFile(latestPath, JSON.stringify(snapshot), 'utf8');
+    log('latest.json updated');
+  }
+
   const prev = await previousSnapshot(todayFile);
-
-  await writeFile(path.join(SNAPSHOTS, todayFile), JSON.stringify(snapshot), 'utf8');
-  await writeFile(path.join(DATA, 'latest.json'), JSON.stringify(snapshot), 'utf8');
-
-  log(`wrote snapshots/${todayFile} and latest.json`);
   if (prev) log(`previous snapshot on record: ${prev.date}`);
   if (errors.length) log(`${errors.length} non-critical dataset(s) unavailable; the page will say so.`);
 }
