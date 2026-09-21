@@ -33,6 +33,22 @@ built for.
 Every apartment on this site appears the same way: as a row in HPD's public
 violation record. The site does not say who lives in any of them.
 
+### The site does not identify who runs it
+
+`config/building.json` → `site.repoUrl` is **deliberately blank**. It previously
+held the GitHub URL, which carried the maintainer's name on every page of a site
+built so that no apartment is identifiable as anyone's. Commit authorship was
+rewritten to `530 Parkside Tenants <noreply@530-parkside.pages.dev>` for the
+same reason.
+
+The footer instead points at `/data/latest.json` — the complete unedited City
+response, published next to the pages built from it by `build.mjs`. That is a
+better verification story than a repo link: it needs no GitHub account.
+
+If the repository is ever moved to an organisation with a neutral name, setting
+`repoUrl` restores the link automatically. **Do not set it to a URL containing
+a personal username.**
+
 ### The one deliberate exception to the sourcing rule
 
 `config/building.json` → `responsibleParties.providedToTenants` is **not**
@@ -153,10 +169,25 @@ haven't seen.
 1. **Household detail is stripped from violation text.** `redact()` in
    `analyze.mjs` removes the lead-paint clause naming a child under six. The
    violation still publishes in full — apartment, class, date, ID, condition.
-2. **Eviction apartment numbers are discarded at parse time**, not hidden at
-   render time. `buildEvictions()` never carries the field through. Building-level
-   counts only. A violation records an owner's failure; an eviction records a
-   neighbour's worst day.
+2. **Eviction records are redacted in `fetch.mjs`, before anything is written
+   to disk** — down to date, residential flag and borough. Not in the renderer,
+   not in `analyze.mjs`: **at fetch**.
+
+   This was originally done in `analyze.mjs` and that was not enough. The
+   snapshot archive stores the RAW rows, and those snapshots are committed to a
+   public repository and published at `/data/latest.json`. So the archive
+   carried `eviction_apt_num` **and `court_index_number`** — and a court index
+   number leads straight to a named person in court records — while the sources
+   page promised the opposite. Redacting where the data is displayed is never
+   enough when the raw data is also published.
+
+   `npm run check` now parses every committed snapshot and fails if a forbidden
+   eviction field survived. Do not weaken that test, and do not add fields back
+   to `REDACT.evictions`.
+
+   The rule generalises: **anything added to `SOURCES` must be checked for
+   household-identifying fields before its first commit**, because the snapshot
+   is permanent and public.
 
 Apartment numbers on *violations* are published. That was a deliberate
 decision, made with the trade-off understood: it is what makes a building-wide
